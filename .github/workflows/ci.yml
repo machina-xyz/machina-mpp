@@ -17,10 +17,22 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
-          cache: "npm"
-      - run: npm ci
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          elif [ -f yarn.lock ]; then
+            yarn install --frozen-lockfile
+          elif [ -f pnpm-lock.yaml ]; then
+            npm i -g pnpm && pnpm install --frozen-lockfile
+          elif [ -f package.json ]; then
+            npm install
+          else
+            echo "No package.json found — skipping"
+            exit 0
+          fi
       - run: npm run lint --if-present
-      - run: npm run typecheck --if-present || npx tsc --noEmit || true
+      - run: npm run typecheck --if-present || npx tsc --noEmit 2>/dev/null || true
 
   test:
     name: Test
@@ -30,8 +42,13 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
-          cache: "npm"
-      - run: npm ci
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci
+          elif [ -f yarn.lock ]; then yarn install --frozen-lockfile
+          elif [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm install --frozen-lockfile
+          elif [ -f package.json ]; then npm install
+          else echo "No package.json — skipping"; exit 0; fi
       - run: npm test --if-present
 
   build:
@@ -42,6 +59,11 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "20"
-          cache: "npm"
-      - run: npm ci
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci
+          elif [ -f yarn.lock ]; then yarn install --frozen-lockfile
+          elif [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm install --frozen-lockfile
+          elif [ -f package.json ]; then npm install
+          else echo "No package.json — skipping"; exit 0; fi
       - run: npm run build --if-present
