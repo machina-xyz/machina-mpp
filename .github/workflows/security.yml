@@ -20,8 +20,12 @@ jobs:
         with: { node-version: "20" }
       - name: Install and audit
         run: |
-          if [ -f package-lock.json ]; then npm ci && npm audit --audit-level=high || true
-          elif [ -f package.json ]; then npm install && npm audit --audit-level=high || true
+          if [ -f pnpm-lock.yaml ]; then
+            npm i -g pnpm && pnpm install --no-frozen-lockfile && pnpm audit --audit-level high || true
+          elif [ -f package-lock.json ]; then
+            npm ci && npm audit --audit-level=high || true
+          elif [ -f package.json ]; then
+            npm install && npm audit --audit-level=high || true
           else echo "No package.json — skipping"; fi
 
   gitleaks:
