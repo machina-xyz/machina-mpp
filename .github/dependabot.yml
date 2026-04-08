@@ -1,18 +1,11 @@
-# Dependabot configuration — monitors for action + dependency updates
-# Creates PRs for review, never auto-merges
 version: 2
 updates:
-  # GitHub Actions — monitor pinned SHA versions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "monthly"
     commit-message:
       prefix: "ci"
     labels:
       - "dependencies"
-      - "security"
-    reviewers:
-      - "0xanomaly"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5

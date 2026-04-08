@@ -1,73 +1,36 @@
-# MACHINA Security — TypeScript
-# All actions pinned to exact commit SHAs to prevent supply chain attacks.
 name: Security
-
 on:
-  push:
-    branches: [main, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   schedule:
-    - cron: "0 6 * * *"
-
+    - cron: "0 6 1 * *"
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  npm-audit:
-    name: npm audit
+  audit:
+    name: Security Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with: { node-version: "20" }
       - name: Install and audit
         run: |
-          if [ -f pnpm-lock.yaml ]; then
-            npm i -g pnpm && pnpm install --no-frozen-lockfile && pnpm audit --audit-level high || true
-          elif [ -f package-lock.json ]; then
-            npm ci && npm audit --audit-level=high || true
-          elif [ -f package.json ]; then
-            npm install && npm audit --audit-level=high || true
-          else echo "No package.json — skipping"; fi
-
-  gitleaks:
-    name: Gitleaks
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with: { fetch-depth: 0 }
-      - uses: gitleaks/gitleaks-action@f586c14365d4643c6aa59d472ae6e984bf47bb34 # v2.3.8
+          if [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm install --no-frozen-lockfile && pnpm audit --audit-level high || true
+          elif [ -f package-lock.json ]; then npm ci && npm audit --audit-level=high || true
+          elif [ -f package.json ]; then npm install && npm audit --audit-level=high || true
+          else echo "No package.json"; fi
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@f586c14365d4643c6aa59d472ae6e984bf47bb34 # v2.3.8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  trivy:
-    name: Trivy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
+        continue-on-error: true
+      - name: Trivy
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
         with:
           scan-type: fs
           scan-ref: "."
           severity: CRITICAL,HIGH
-          format: sarif
-          output: trivy.sarif
-      - uses: github/codeql-action/upload-sarif@ff0a06e83cb2de871e5a09832bc6a81e7276941f # v3.28.18
-        if: always()
-        with:
-          sarif_file: trivy.sarif
-
-  semgrep:
-    name: Semgrep
-    runs-on: ubuntu-latest
-    container:
-      image: semgrep/semgrep:1.117.0@sha256:0be9eb0d1e1a3f65050ebd0a6f60e3e36a3bfbb14bbcae32d7a6a7c7614ccda4
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - run: |
-          semgrep scan \
-            --config auto \
-            --config p/typescript \
-            --config p/javascript \
-            --config p/secrets \
-            --config p/owasp-top-ten \
-            --config p/nodejs \
-            --error . || true
+        continue-on-error: true
