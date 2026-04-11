@@ -1,5 +1,5 @@
 {
-  "name": "@machina/mpp",
+  "name": "@machina-xyz/mpp",
   "version": "0.1.0",
   "description": "MACHINA MPP (Machine Payments Protocol) — governed machine payments with policy enforcement",
   "type": "module",
@@ -47,6 +47,7 @@
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm build"
   },
@@ -74,7 +75,8 @@
   "devDependencies": {
     "@types/express": "^5.0.0",
     "hono": "^4.0.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.4"
   },
   "peerDependencies": {
     "express": "^4.0.0 || ^5.0.0",

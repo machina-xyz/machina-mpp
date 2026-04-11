@@ -134,7 +134,7 @@ export class MachinaMppClient {
 
     // Try body
     try {
-      const body = await response.clone().json();
+      const body = await response.clone().json() as Record<string, any>;
       if (body.pricing || body.x402 || body.mpp) {
         return {
           challengeId: body.challengeId || body.mpp?.challengeId || crypto.randomUUID(),
