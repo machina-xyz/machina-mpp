@@ -30,6 +30,10 @@
       "types": "./dist/middleware/express.d.ts",
       "import": "./dist/middleware/express.js"
     },
+    "./middleware/dual": {
+      "types": "./dist/middleware/dual.d.ts",
+      "import": "./dist/middleware/dual.js"
+    },
     "./mcp": {
       "types": "./dist/mcp.d.ts",
       "import": "./dist/mcp.js"

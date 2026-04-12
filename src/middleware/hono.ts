@@ -1,11 +1,11 @@
 /**
- * @machina/mpp/middleware/hono — Hono middleware for MPP payment gating.
+ * @machina/mpp/middleware/hono -- Hono middleware for MPP payment gating.
  *
  * Adds policy-governed payment gating to any Hono app:
  *   1. Check for MPP credential or x402 payment header
- *   2. If missing → return 402 with challenge
- *   3. If present → verify credential → evaluate policy → allow/deny
- *   4. After response → generate receipt
+ *   2. If missing -> return 402 with challenge
+ *   3. If present -> verify credential -> evaluate policy -> allow/deny
+ *   4. After response -> generate receipt
  *
  * @example
  * ```typescript
@@ -44,7 +44,7 @@ export function machinaMpp(config: MachinaMppServerConfig) {
       get: (name: string) => c.req.header(name) ?? null,
     });
 
-    // No credential → return 402 challenge
+    // No credential -> return 402 challenge
     if (!credential) {
       const challenge = server.generateChallenge();
       for (const [key, value] of Object.entries(challenge.headers)) {
@@ -56,10 +56,13 @@ export function machinaMpp(config: MachinaMppServerConfig) {
     // Verify credential
     const verification = await server.verifyCredential(credential);
     if (!verification.valid) {
-      return c.json({
-        error: "Invalid payment credential",
-        reason: verification.reason,
-      }, 402);
+      return c.json(
+        {
+          error: "Invalid payment credential",
+          reason: verification.reason,
+        },
+        402,
+      );
     }
 
     // Store credential on context for downstream handlers

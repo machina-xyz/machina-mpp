@@ -9,15 +9,17 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      // Map sibling imports to dist (source files for server, types, mcp, middleware only exist in dist)
-      "../server.js": path.resolve(__dirname, "dist/server.js"),
-      "../types.js": path.resolve(__dirname, "dist/types.js"),
+      // Map .js imports to .ts source files (vitest runs TypeScript directly)
+      "../server.js": path.resolve(__dirname, "src/server.ts"),
+      "../types.js": path.resolve(__dirname, "src/types.ts"),
+      "../middleware/dual.js": path.resolve(__dirname, "src/middleware/dual.ts"),
+      "../middleware/hono.js": path.resolve(__dirname, "src/middleware/hono.ts"),
+      "../middleware/index.js": path.resolve(__dirname, "src/middleware/index.ts"),
+      // Files that only exist in dist (no source created yet)
       "../mcp.js": path.resolve(__dirname, "dist/mcp.js"),
-      "../middleware/index.js": path.resolve(__dirname, "dist/middleware/index.js"),
-      "../middleware/hono.js": path.resolve(__dirname, "dist/middleware/hono.js"),
       "../middleware/express.js": path.resolve(__dirname, "dist/middleware/express.js"),
       // For client.ts which imports ./types.js
-      "./types.js": path.resolve(__dirname, "dist/types.js"),
+      "./types.js": path.resolve(__dirname, "src/types.ts"),
     },
   },
 });

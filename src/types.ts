@@ -1,25 +1,25 @@
 /**
- * @machina/mpp — Type definitions for MACHINA's governed MPP integration.
+ * @machina/mpp -- Type definitions for MACHINA's governed MPP integration.
  *
  * MPP (Machine Payments Protocol) defines the wire format for agent-to-service
  * payments. MACHINA wraps MPP with policy enforcement: every payment flows
  * through the MACHINA policy engine before settlement.
  */
 
-// ─── Payment Methods ──────────────────────────────────────────────────────────
+// ── Payment Methods ──────────────────────────────────────────────────────────
 
 /**
  * Supported payment method types.
- * "machina" is MACHINA's custom MPP payment method — multi-chain, policy-governed.
+ * "machina" is MACHINA's custom MPP payment method -- multi-chain, policy-governed.
  */
 export type PaymentMethodType =
-  | "machina"        // MACHINA multi-chain (Base, Solana, Arbitrum, Sui, etc.)
-  | "tempo"          // Tempo/Stripe rails
-  | "stripe"         // Direct Stripe
-  | "card"           // Card payment
-  | "lightning"      // Bitcoin Lightning
-  | "x402"           // x402 protocol (legacy compat)
-  | "custom";        // Other custom methods
+  | "machina"
+  | "tempo"
+  | "stripe"
+  | "card"
+  | "lightning"
+  | "x402"
+  | "custom";
 
 /**
  * A payment method configuration for MPP credential generation.
@@ -36,7 +36,7 @@ export interface PaymentMethod {
   config?: Record<string, unknown>;
 }
 
-// ─── MPP Challenge (402 Response) ─────────────────────────────────────────────
+// ── Wire Types ───────────────────────────────────────────────────────────────
 
 /**
  * The 402 Payment Required challenge returned by an MPP-enabled server.
@@ -64,10 +64,8 @@ export interface MppChallenge {
   metadata?: Record<string, unknown>;
 }
 
-// ─── MPP Credential ───────────────────────────────────────────────────────────
-
 /**
- * An MPP payment credential — proof of payment or payment authorization.
+ * An MPP payment credential -- proof of payment or payment authorization.
  * Generated after policy approval, included in request headers.
  */
 export interface MppCredential {
@@ -99,8 +97,6 @@ export interface MppCredential {
   policyEvalId?: string;
 }
 
-// ─── MPP Receipt ──────────────────────────────────────────────────────────────
-
 /**
  * A payment receipt returned after successful service delivery.
  */
@@ -127,11 +123,9 @@ export interface MppReceipt {
   settledAt: string;
 }
 
-// ─── Policy Evaluation ────────────────────────────────────────────────────────
-
 /**
  * Result of MACHINA policy engine evaluation on an MPP payment.
- * This is what makes MACHINA MPP different from vanilla MPP — governance.
+ * This is what makes MACHINA MPP different from vanilla MPP -- governance.
  */
 export interface PolicyEvaluation {
   /** Evaluation ID */
@@ -163,7 +157,7 @@ export interface PolicyEvaluation {
   evaluatedAt: string;
 }
 
-// ─── Client Configuration ─────────────────────────────────────────────────────
+// ── Config Types ─────────────────────────────────────────────────────────────
 
 /**
  * Configuration for the MACHINA MPP client.
@@ -193,8 +187,6 @@ export interface MachinaMppClientConfig {
   fetch?: typeof globalThis.fetch;
 }
 
-// ─── Server Configuration ─────────────────────────────────────────────────────
-
 /**
  * Configuration for the MACHINA MPP server middleware.
  */
@@ -223,7 +215,7 @@ export interface MachinaMppServerConfig {
   network?: "mainnet" | "testnet";
 }
 
-// ─── MCP Integration ──────────────────────────────────────────────────────────
+// ── MCP Integration ──────────────────────────────────────────────────────────
 
 /**
  * MPP error code for MCP JSON-RPC payment required responses.
@@ -253,7 +245,7 @@ export interface McpPaymentContext {
   policyEval?: PolicyEvaluation;
 }
 
-// ─── Wire Format ──────────────────────────────────────────────────────────────
+// ── Wire Format ──────────────────────────────────────────────────────────────
 
 /**
  * HTTP header names for MPP credential transport.
@@ -271,4 +263,17 @@ export const MPP_HEADERS = {
   AGENT_ID: "x-machina-agent-id",
   /** x402 compatibility header */
   X402_PAYMENT: "x-402-payment",
+} as const;
+
+/**
+ * x402 protocol header names.
+ * These are the standard headers defined by the x402 specification.
+ */
+export const X402_HEADERS = {
+  /** x402 payment header (JSON payload with EIP-712 signature) */
+  PAYMENT: "x-payment",
+  /** x402 payment proof (post-settlement proof) */
+  PAYMENT_PROOF: "x-payment-proof",
+  /** Authorization bearer variant */
+  AUTHORIZATION_PREFIX: "x402",
 } as const;

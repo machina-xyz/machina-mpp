@@ -1,5 +1,5 @@
 /**
- * @machina/mpp — MPP Server
+ * @machina/mpp -- MPP Server
  *
  * Server-side credential verification and challenge generation.
  * Services use this to:
@@ -18,17 +18,21 @@ import type {
 } from "./types.js";
 import { MPP_HEADERS } from "./types.js";
 
-// ─── Server ───────────────────────────────────────────────────────────────────
+// ── Server ───────────────────────────────────────────────────────────────────
 
 export class MachinaMppServer {
   private config: Required<
-    Pick<MachinaMppServerConfig, "acceptedMethods" | "acceptedTokens" | "platformFeeRate" | "verifyCredentials" | "network">
-  > & MachinaMppServerConfig;
+    Pick<
+      MachinaMppServerConfig,
+      "acceptedMethods" | "acceptedTokens" | "platformFeeRate" | "verifyCredentials" | "network"
+    >
+  > &
+    MachinaMppServerConfig;
 
   constructor(config: MachinaMppServerConfig) {
     this.config = {
       ...config,
-      acceptedMethods: config.acceptedMethods ?? ["machina", "x402"],
+      acceptedMethods: config.acceptedMethods ?? (["machina", "x402"] as PaymentMethodType[]),
       acceptedTokens: config.acceptedTokens ?? ["USDC"],
       platformFeeRate: config.platformFeeRate ?? 0.01,
       verifyCredentials: config.verifyCredentials ?? true,
@@ -36,7 +40,7 @@ export class MachinaMppServer {
     };
   }
 
-  // ─── Challenge Generation ───────────────────────────────────────────────
+  // ── Challenge Generation ───────────────────────────────────────────────
 
   /**
    * Generate a 402 Payment Required challenge.
@@ -81,27 +85,27 @@ export class MachinaMppServer {
         },
         mpp: challenge,
         // x402 backwards compatibility
-        x402: this.config.acceptedMethods.includes("x402") ? {
-          accepts: {
-            price,
-            token: this.config.acceptedTokens[0] ?? "USDC",
-            chain: this.config.acceptedChains?.[0] ?? "base",
-            payee: this.config.paymentAddress,
-          },
-        } : undefined,
+        x402: this.config.acceptedMethods.includes("x402")
+          ? {
+              accepts: {
+                price,
+                token: this.config.acceptedTokens[0] ?? "USDC",
+                chain: this.config.acceptedChains?.[0] ?? "base",
+                payee: this.config.paymentAddress,
+              },
+            }
+          : undefined,
       },
     };
   }
 
-  // ─── Credential Extraction ──────────────────────────────────────────────
+  // ── Credential Extraction ──────────────────────────────────────────────
 
   /**
    * Extract credential from request headers.
    * Supports both MPP credential header and x402 payment header.
    */
-  extractCredential(headers: {
-    get(name: string): string | null | undefined;
-  }): MppCredential | null {
+  extractCredential(headers: { get(name: string): string | null | undefined }): MppCredential | null {
     // Try MPP credential header first
     const mppHeader = headers.get(MPP_HEADERS.CREDENTIAL);
     if (mppHeader) {
@@ -115,7 +119,7 @@ export class MachinaMppServer {
     // Try x402 payment header (backwards compatibility)
     const x402Header = headers.get(MPP_HEADERS.X402_PAYMENT);
     if (x402Header) {
-      // x402 sends a tx hash — wrap it in a minimal credential
+      // x402 sends a tx hash -- wrap it in a minimal credential
       return {
         version: "1",
         method: "x402",
@@ -134,16 +138,13 @@ export class MachinaMppServer {
     return null;
   }
 
-  // ─── Credential Verification ────────────────────────────────────────────
+  // ── Credential Verification ────────────────────────────────────────────
 
   /**
    * Verify an MPP credential.
    * Checks: expiry, amount, payee match, and optionally verifies with MACHINA API.
    */
-  async verifyCredential(credential: MppCredential): Promise<{
-    valid: boolean;
-    reason?: string;
-  }> {
+  async verifyCredential(credential: MppCredential): Promise<{ valid: boolean; reason?: string }> {
     // Check expiry
     if (new Date(credential.expiresAt) < new Date()) {
       return { valid: false, reason: "Credential expired" };
@@ -180,15 +181,14 @@ export class MachinaMppServer {
         });
 
         if (res.ok) {
-          const result = await res.json() as { valid: boolean; reason?: string };
+          const result = (await res.json()) as { valid: boolean; reason?: string };
           return result;
         }
 
-        // API error — fail open for availability (credential was already format-checked)
-        // In production, services can set verifyCredentials: true to fail closed
+        // API error -- fail open for availability
         return { valid: true };
       } catch {
-        // Network error — accept credential based on local checks
+        // Network error -- accept credential based on local checks
         return { valid: true };
       }
     }
@@ -196,7 +196,7 @@ export class MachinaMppServer {
     return { valid: true };
   }
 
-  // ─── Receipt Generation ─────────────────────────────────────────────────
+  // ── Receipt Generation ─────────────────────────────────────────────────
 
   /**
    * Generate a payment receipt after successful service delivery.
@@ -229,16 +229,15 @@ export class MachinaMppServer {
     return btoa(JSON.stringify(receipt));
   }
 
-  // ─── MCP Error Response ─────────────────────────────────────────────────
+  // ── MCP Error Response ─────────────────────────────────────────────────
 
   /**
    * Generate an MCP JSON-RPC -32042 error response for a paid tool call.
    */
-  generateMcpPaymentError(opts?: { description?: string; customPrice?: string }): {
-    code: number;
-    message: string;
-    data: Record<string, unknown>;
-  } {
+  generateMcpPaymentError(opts?: {
+    description?: string;
+    customPrice?: string;
+  }): { code: number; message: string; data: Record<string, unknown> } {
     const price = opts?.customPrice ?? this.config.pricePerRequestUsd;
 
     return {
